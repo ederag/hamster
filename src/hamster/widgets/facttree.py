@@ -399,6 +399,16 @@ class FactTree(graphics.Scene, gtk.Scrollable):
         self.days = days
         self.facts = facts
 
+        print("facts: ", id(facts))
+        for fact in facts:
+            print(id(fact), fact)
+        print("self.facts: ", id(self.facts))
+        for fact in self.facts:
+            print(id(fact), fact)
+        assert(self.facts == facts)
+        assert [fact.end_time for fact in self.facts] == [fact.end_time for fact in facts]
+        assert [id(fact) for fact in self.facts] == [id(fact) for fact in facts]
+
         self.set_row_heights()
 
         if self.current_fact not in facts:
