@@ -156,8 +156,15 @@ class CustomFactController(Controller):
 
     def increment_day(self, days):
         delta = dt.timedelta(days=days)
+        # to avoid loops, make the changes in this method,
+        # called only by the timeline arrows
+        if self.fact and delta:
+            if self.fact.start_time:
+                self.fact.start_time += delta
+            if self.fact.end_time:
+                self.fact.end_time += delta
+        # this will also take care of updating fields and timeline
         self.set_day(self.day + delta)
-        self.update_fields()
 
     def show(self):
         self.window.show()
@@ -234,10 +241,12 @@ class CustomFactController(Controller):
             self.update_cmdline()
 
     def on_start_date_changed(self, widget):
-        if not self.master_is_cmdline:
+        # start date can be changed by cmdline or by the timeline arrows,
+        # so can't rely on self.master_is_cmdline
+        new_date = self.start_date.date
+        previous_date = self.fact.start_time.date() if self.fact.start_time else None
+        if new_date != previous_date:
             if self.fact.start_time:
-                previous_date = self.fact.start_time.date()
-                new_date = self.start_date.date
                 delta = new_date - previous_date
                 self.fact.start_time += delta
                 if self.fact.end_time:
@@ -284,15 +293,15 @@ class CustomFactController(Controller):
         self.window.present()
 
     def set_day(self, value):
+        """Set this window default day.
+
+        Update all dependencies accordingly (fields, cmdline, timeline).
+        """
         delta = value - self._day if self._day else None
         self._day = value
         self.cmdline.default_day = value
-        if self.fact and delta:
-            if self.fact.start_time:
-                self.fact.start_time += delta
-            if self.fact.end_time:
-                self.fact.end_time += delta
-            # self.update_fields() here would enter an infinite loop
+        # update fields and timeline, eventually
+        self.update_fields()
 
     def update_cmdline(self, select=None):
         """Update the cmdline entry content."""
