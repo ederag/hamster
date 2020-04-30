@@ -106,7 +106,7 @@ class CustomFactController(Controller):
             self.fact = Fact(start_time=dt.datetime.now())
 
         original_fact = self.fact
-        self.day = self.fact.date
+        self.set_day(self.fact.date)
 
         self.update_fields()
         self.update_cmdline(select=True)
@@ -133,22 +133,12 @@ class CustomFactController(Controller):
         self.validate_fields()
         self.window.show_all()
 
+    # property to make day readonly
+    # day should be modified by set_day
     @property
     def day(self):
         """Default hamster day."""
         return self._day
-
-    @day.setter
-    def day(self, value):
-        delta = value - self._day if self._day else None
-        self._day = value
-        self.cmdline.default_day = value
-        if self.fact and delta:
-            if self.fact.start_time:
-                self.fact.start_time += delta
-            if self.fact.end_time:
-                self.fact.end_time += delta
-            # self.update_fields() here would enter an infinite loop
 
     def on_prev_day_clicked(self, button):
         self.increment_day(-1)
@@ -166,7 +156,7 @@ class CustomFactController(Controller):
 
     def increment_day(self, days):
         delta = dt.timedelta(days=days)
-        self.day += delta
+        self.set_day(self.day + delta)
         self.update_fields()
 
     def show(self):
@@ -256,7 +246,7 @@ class CustomFactController(Controller):
                     self.end_date.date = self.fact.end_time
             if self.fact.date:
                 # change default day only if date is set
-                self.day = self.fact.date
+                self.set_day(self.fact.date)
             self.validate_fields()
             self.update_cmdline()
 
@@ -292,6 +282,17 @@ class CustomFactController(Controller):
 
     def present(self):
         self.window.present()
+
+    def set_day(self, value):
+        delta = value - self._day if self._day else None
+        self._day = value
+        self.cmdline.default_day = value
+        if self.fact and delta:
+            if self.fact.start_time:
+                self.fact.start_time += delta
+            if self.fact.end_time:
+                self.fact.end_time += delta
+            # self.update_fields() here would enter an infinite loop
 
     def update_cmdline(self, select=None):
         """Update the cmdline entry content."""
