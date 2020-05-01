@@ -297,7 +297,6 @@ class CustomFactController(Controller):
 
         Update all dependencies accordingly (fields, cmdline, timeline).
         """
-        delta = value - self._day if self._day else None
         self._day = value
         self.cmdline.default_day = value
         # update fields and timeline, eventually
