@@ -106,7 +106,7 @@ class CustomFactController(Controller):
             self.fact = Fact(start_time=dt.datetime.now())
 
         original_fact = self.fact
-        self.set_day(self.fact.date)
+        self.set_day(self.fact.date, update=False)
 
         self.update_fields()
         self.update_cmdline(select=True)
@@ -255,7 +255,8 @@ class CustomFactController(Controller):
                     self.end_date.date = self.fact.end_time
             if self.fact.date:
                 # change default day only if date is set
-                self.set_day(self.fact.date)
+                # do not update fields in set_day, to avoid loops
+                self.set_day(self.fact.date, update=False)
             self.validate_fields()
             self.update_cmdline()
 
@@ -292,15 +293,22 @@ class CustomFactController(Controller):
     def present(self):
         self.window.present()
 
-    def set_day(self, value):
+    def set_day(self, value, update=True):
         """Set this window default day.
 
-        Update all dependencies accordingly (fields, cmdline, timeline).
+        If update=False is used (e.g. to avoid loops or duplication),
+        the caller must ensure that
+        fields, timeline, and cmdline are all in sync in the end.
+
+        update (boolean): update fields, timeline and cmdline (True by default)
         """
         self._day = value
         self.cmdline.default_day = value
-        # update fields and timeline, eventually
-        self.update_fields()
+        if update:
+            # update fields, especially calendars
+            # this also updates the timeline, eventually
+            self.update_fields()
+            self.update_cmdline()
 
     def update_cmdline(self, select=None):
         """Update the cmdline entry content."""
