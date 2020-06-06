@@ -10,6 +10,7 @@ import logging
 logger = logging.getLogger(__name__)   # noqa: E402
 
 import calendar
+import re
 
 from copy import deepcopy
 
@@ -210,7 +211,13 @@ class Fact(object):
             # Is activity starting range-like ?
             subfact = Fact.parse(self.activity, range_pos=range_pos,
                                  default_day=default_day)
-            need_explicit = bool(subfact.range)
+            # cf. datetime.Range.pattern()
+            if subfact.range:
+                need_explicit = True
+            elif re.match("^\s*\d{1,3}", self.activity):
+                need_explicit = True
+            else:
+                need_explicit = False
         else:
             # TODO: should check last tag.
             need_explicit = False

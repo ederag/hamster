@@ -235,6 +235,7 @@ class TestFactParsing(unittest.TestCase):
                     "#123 with two #hash",
                     "activity, with comma",
                     "17.00 tea",
+                    "123 - fix this bug",
                     ):
                     for category in (
                         "",
